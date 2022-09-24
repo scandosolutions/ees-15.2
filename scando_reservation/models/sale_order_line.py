@@ -2,12 +2,14 @@
 
 from collections import defaultdict
 from odoo.tools import float_is_zero
-from odoo import api, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
+
+    product_uom_qty = fields.Float(default=0.0)
 
     def _product_domain(self, product_variant_ids):
         return [('product_id', 'in', product_variant_ids)]
@@ -87,13 +89,26 @@ class SaleOrderLine(models.Model):
             free_stock = currents.get(product.id, 0)
         return free_stock
 
-    def write(self, values):
-        result = super(SaleOrderLine, self).write(values)
-        for rec in self:
-            if self.user_has_groups('sales_team.group_sale_salesman'):
-                free_qty_available = rec._get_free_stock_qty() or rec.product_id.with_context(
-                        warehouse=rec.warehouse_id.ids, is_from_product_reservation=True).virtual_available
-                if rec.product_uom_qty > free_qty_available:
-                    rec.product_uom_qty = 0.0
-                    raise ValidationError(_("The available quantity for this product is : {}".format(free_qty_available)))
-        return result
+    @api.onchange('product_packaging_qty')
+    def _onchange_product_packaging_qty(self):
+        super(SaleOrderLine, self)._onchange_product_packaging_qty()
+        if self.user_has_groups('sales_team.group_sale_salesman'):
+            free_qty_available = self._get_free_stock_qty() or self.product_id.with_context(
+                warehouse=self.warehouse_id.ids, is_from_product_reservation=True).virtual_available
+            if self.product_uom_qty > free_qty_available:
+                raise ValidationError(_("The available quantity for this product is : {}".format(free_qty_available)))
+    
+    def _update_taxes(self):#To make qty 0 while change product
+        super(SaleOrderLine, self)._update_taxes()
+        self.product_uom_qty = 0.0
+
+    # def write(self, values):
+    #     result = super(SaleOrderLine, self).write(values)
+    #     for rec in self:
+    #         if self.user_has_groups('sales_team.group_sale_salesman'):
+    #             free_qty_available = rec._get_free_stock_qty() or rec.product_id.with_context(
+    #                     warehouse=rec.warehouse_id.ids, is_from_product_reservation=True).virtual_available
+    #             if rec.product_uom_qty > free_qty_available:
+    #                 rec.product_uom_qty = 0.0
+    #                 raise ValidationError(_("The available quantity for this product is : {}".format(free_qty_available)))
+    #     return result
