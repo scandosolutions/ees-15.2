@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="product_normal_form_view" model="ir.ui.view">
+            <field name="name">product.product.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='standard_price_uom']" position="attributes">
+                    <attribute name="groups">ees_access_rights.group_show_cost_only</attribute>
+                </xpath>
+                <xpath expr="//label[@for='standard_price']" position="attributes">
+                    <attribute name="groups">ees_access_rights.group_show_cost_only</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="product_product_tree_view" model="ir.ui.view">
+            <field name="name">product.product.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="field[@name='standard_price']" position="attributes">
+                    <attribute name="groups">ees_access_rights.group_show_cost_only</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
