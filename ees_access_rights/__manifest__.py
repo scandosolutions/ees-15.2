@@ -10,7 +10,7 @@
     'author': "Kalim Shaikh",
     'website': "kalim",
     'category': 'Sales',
-    'version': '1.1.0',
+    'version': '1.2.0',
 
     'depends': [
         'sale_management',
